@@ -47,7 +47,7 @@
 - Настройте балансировку Round-robin на 4 уровне.
 - На проверку направьте конфигурационный файл haproxy, скриншоты, где видно перенаправление запросов на разные серверы при обращении к HAProxy.
 
-![Скриншот](https://github.com/name-bot-5/haproxy/blob/main/img/haproxy/1-4.png)
+![Скриншот](https://github.com/name-bot-5/haproxy/blob/main/img/haproxy/1-4a.png)
 
 
 ```
@@ -60,27 +60,13 @@ listen stats  # веб-страница со статистикой
         stats realm             Haproxy\ Statistics
         stats auth              admin:1234
 
-frontend example  # секция фронтенд
-        mode http
-        bind :8088
-        default_backend web_servers
-        acl ACL_example.com hdr(host) -i example.com
-
-backend web_servers    # секция бэкенд
-        mode http
-        balance roundrobin
-        option httpchk
-        http-check send meth GET uri /index.html
-        server s1 127.0.0.1:8888 check
-        server s2 127.0.0.1:9999 check
-
-listen web_tcp
-    bind :1325
-    mode tcp
-    balance roundrobin
-    option tcp-check
-    server s1 127.0.0.1:8888 check inter 3s
-    server s2 127.0.0.1:9999 check inter 3s
+listen web_tcp  				### TCP-балансировщик на 1325 порту (уровень 4, round-robin) ###
+    bind *:1325					# слушает все IP на порту 1325
+    mode tcp					# уровень 4 (L4), работает на основе TCP, без разбора протоколов типа HTTP.
+    balance roundrobin				# равномерное распределение входящих соединений
+    option tcp-check				# проверка доступности порта
+    server s1 127.0.0.1:8888 check inter 3s	# Python-сервер на порту 8888
+    server s2 127.0.0.1:9999 check inter 3s	# Python-сервер на порту 9999
 
 ```
 
